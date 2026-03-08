@@ -33,15 +33,16 @@ describe("ContributionForm", () => {
     expect(screen.getByPlaceholderText("Message (optional)")).toBeInTheDocument()
   })
 
-  it("renders all 4 payment method buttons", async () => {
+  it("renders all 5 payment method buttons", async () => {
     await act(async () => {
       render(<ContributionForm eventId="test-id" />)
     })
 
     expect(screen.getByText("bKash")).toBeInTheDocument()
     expect(screen.getByText("Nagad")).toBeInTheDocument()
-    expect(screen.getByText("Stripe")).toBeInTheDocument()
-    expect(screen.getByText("Card")).toBeInTheDocument()
+    expect(screen.getByText("Cash")).toBeInTheDocument()
+    expect(screen.getByText("Bank Transfer")).toBeInTheDocument()
+    expect(screen.getByText("Other")).toBeInTheDocument()
   })
 
   it("shows success message after submission", async () => {

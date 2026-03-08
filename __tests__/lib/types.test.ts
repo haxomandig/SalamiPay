@@ -6,12 +6,13 @@ import {
 } from "../../lib/types"
 
 describe("Payment constants", () => {
-  it("has 4 payment methods", () => {
-    expect(PAYMENT_METHODS).toHaveLength(4)
+  it("has 5 payment methods", () => {
+    expect(PAYMENT_METHODS).toHaveLength(5)
     expect(PAYMENT_METHODS).toContain("bkash")
     expect(PAYMENT_METHODS).toContain("nagad")
-    expect(PAYMENT_METHODS).toContain("stripe")
-    expect(PAYMENT_METHODS).toContain("card")
+    expect(PAYMENT_METHODS).toContain("cash")
+    expect(PAYMENT_METHODS).toContain("bank_transfer")
+    expect(PAYMENT_METHODS).toContain("other")
   })
 
   it("has labels for every payment method", () => {

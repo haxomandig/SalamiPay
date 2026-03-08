@@ -113,7 +113,7 @@ export default function Dashboard() {
                   <Link href={`/event/${event.slug}`} className="no-underline text-inherit">
                     <strong>{event.name}</strong>
                     <p className="mt-1 text-sm text-gray-500">
-                      Target: {formatAmount(event.target_amount)} — {event.participants} participants — Created {new Date(event.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
+                      {event.target_amount != null ? `Target: ${formatAmount(event.target_amount)} — ` : ""}{event.participants} participants — Created {new Date(event.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
                     </p>
                   </Link>
                 </li>

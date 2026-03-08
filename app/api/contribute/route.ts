@@ -12,7 +12,7 @@ function getSupabaseAdmin() {
 
 export async function POST(request: Request) {
   const body = await request.json()
-  const { event_id, name, amount, message, payment_method, turnstile_token } = body
+  const { event_id, name, amount, message, payment_method, turnstile_token, guests_self, guests_spouse, guests_child_under12, guests_child_over12, guests_other } = body
 
   // Validate turnstile token
   const turnstileSecret = process.env.TURNSTILE_SECRET_KEY
@@ -45,9 +45,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid message." }, { status: 400 })
   }
 
-  const validMethods = ["bkash", "nagad", "stripe", "card"]
+  const validMethods = ["bkash", "nagad", "cash", "bank_transfer", "other"]
   if (!validMethods.includes(payment_method)) {
     return NextResponse.json({ error: "Invalid payment method." }, { status: 400 })
+  }
+
+  // Validate guest fields (optional, default 0)
+  const guestFields = { guests_self, guests_spouse, guests_child_under12, guests_child_over12, guests_other }
+  for (const [key, val] of Object.entries(guestFields)) {
+    if (val !== undefined && val !== null) {
+      if (typeof val !== "number" || val < 0 || val > 10000 || !Number.isInteger(val)) {
+        return NextResponse.json({ error: `Invalid ${key}.` }, { status: 400 })
+      }
+    }
   }
 
   // Insert contribution
@@ -61,6 +71,11 @@ export async function POST(request: Request) {
       message: message ?? "",
       payment_method,
       payment_status: "pending",
+      guests_self: guests_self ?? 0,
+      guests_spouse: guests_spouse ?? 0,
+      guests_child_under12: guests_child_under12 ?? 0,
+      guests_child_over12: guests_child_over12 ?? 0,
+      guests_other: guests_other ?? 0,
     })
 
   if (error) {

@@ -18,10 +18,11 @@ import QRCode from "react-qr-code"
 type EventData = {
   id: string
   name: string
-  target_amount: number
+  target_amount: number | null
   participants: number
   created_by: string | null
   deadline: string | null
+  guest_tracking: boolean
   created_at: string
 }
 
@@ -136,17 +137,19 @@ export default function EventPageClient({ event: initialEvent }: { event: EventD
     URL.revokeObjectURL(url)
   }
 
+  const hasTarget = eventData.target_amount != null && eventData.target_amount > 0
   const totalCollected = contributions
     .filter((c) => c.payment_status === "completed")
     .reduce((sum, c) => sum + c.amount, 0)
   const pendingTotal = contributions
     .filter((c) => c.payment_status === "pending")
     .reduce((sum, c) => sum + c.amount, 0)
-  const remaining = eventData.target_amount - totalCollected
-  const fullyFunded = totalCollected >= eventData.target_amount
+  const totalAll = contributions.reduce((sum, c) => sum + c.amount, 0)
+  const remaining = hasTarget ? (eventData.target_amount! - totalCollected) : 0
+  const fullyFunded = hasTarget && totalCollected >= eventData.target_amount!
   const expired = eventData.deadline != null && new Date(eventData.deadline) < new Date()
-  const progressPercent = eventData.target_amount > 0
-    ? Math.min((totalCollected / eventData.target_amount) * 100, 100)
+  const progressPercent = hasTarget
+    ? Math.min((totalCollected / eventData.target_amount!) * 100, 100)
     : 0
 
   return (
@@ -160,7 +163,7 @@ export default function EventPageClient({ event: initialEvent }: { event: EventD
 
       {fullyFunded && (
         <div className="mt-4 p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-          <p className="text-green-700 font-semibold">Fully funded! Target of {formatAmount(eventData.target_amount)} has been reached.</p>
+          <p className="text-green-700 font-semibold">Fully funded! Target of {formatAmount(eventData.target_amount!)} has been reached.</p>
         </div>
       )}
 
@@ -170,12 +173,16 @@ export default function EventPageClient({ event: initialEvent }: { event: EventD
         </div>
       )}
 
-      <p className="mt-2">Target Amount: {formatAmount(eventData.target_amount)}</p>
+      {hasTarget && (
+        <p className="mt-2">Target Amount: {formatAmount(eventData.target_amount!)}</p>
+      )}
       <p>Participants: {eventData.participants}</p>
       <p className="text-sm text-gray-500 dark:text-gray-400">
-        Expected per person: {formatAmount(Math.ceil(eventData.target_amount / eventData.participants))}
+        {hasTarget && (
+          <>Expected per person: {formatAmount(Math.ceil(eventData.target_amount! / eventData.participants))}</>
+        )}
         {eventData.created_at && new Date(eventData.created_at).getFullYear() > 1970 && (
-          <> — Created {new Date(eventData.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</>
+          <>{hasTarget ? " — " : ""}Created {new Date(eventData.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</>
         )}
         {eventData.deadline && (
           <> — Deadline: {new Date(eventData.deadline).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</>
@@ -265,25 +272,57 @@ export default function EventPageClient({ event: initialEvent }: { event: EventD
       )}
 
       {adminMode && isOwner && contributions.length > 0 && (
-        <EventDashboard contributions={contributions} />
+        <EventDashboard contributions={contributions} guestTracking={eventData.guest_tracking} />
       )}
 
       <div className="my-5">
-        <p>Collected: {formatAmount(totalCollected)} / {formatAmount(eventData.target_amount)} (Remaining: {formatAmount(remaining > 0 ? remaining : 0)})</p>
-        {pendingTotal > 0 && (
-          <p className="text-sm text-yellow-600">{formatAmount(pendingTotal)} pending</p>
+        {hasTarget ? (
+          <>
+            <p>Collected: {formatAmount(totalCollected)} / {formatAmount(eventData.target_amount!)} (Remaining: {formatAmount(remaining > 0 ? remaining : 0)})</p>
+            {pendingTotal > 0 && (
+              <p className="text-sm text-yellow-600">{formatAmount(pendingTotal)} pending</p>
+            )}
+            <div className="w-full max-w-md h-5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-green-500 rounded-full transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <p className="text-sm text-gray-500">{Math.round(progressPercent)}%</p>
+          </>
+        ) : (
+          <p>Total Collected: {formatAmount(totalAll)} ({contributions.length} contribution{contributions.length !== 1 ? "s" : ""})</p>
         )}
-        <div className="w-full max-w-md h-5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-green-500 rounded-full transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-        <p className="text-sm text-gray-500">{Math.round(progressPercent)}%</p>
       </div>
 
+      {eventData.guest_tracking && contributions.length > 0 && (
+        <div className="my-5 p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
+          <h2 className="text-sm font-semibold mb-3">Guest Summary</h2>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            {[
+              { label: "Self", value: contributions.reduce((s, c) => s + (c.guests_self || 0), 0) },
+              { label: "Spouse", value: contributions.reduce((s, c) => s + (c.guests_spouse || 0), 0) },
+              { label: "Child (<12)", value: contributions.reduce((s, c) => s + (c.guests_child_under12 || 0), 0) },
+              { label: "Child (>12)", value: contributions.reduce((s, c) => s + (c.guests_child_over12 || 0), 0) },
+              { label: "Other", value: contributions.reduce((s, c) => s + (c.guests_other || 0), 0) },
+            ].map(({ label, value }) => (
+              <div key={label} className="p-2 bg-gray-50 dark:bg-gray-900 rounded-lg text-center">
+                <p className="text-xs text-gray-500">{label}</p>
+                <p className="text-lg font-bold">{value}</p>
+              </div>
+            ))}
+            <div className="p-2 bg-blue-50 dark:bg-blue-950 rounded-lg text-center">
+              <p className="text-xs text-blue-600">Total</p>
+              <p className="text-lg font-bold text-blue-700">
+                {contributions.reduce((s, c) => s + (c.guests_self || 0) + (c.guests_spouse || 0) + (c.guests_child_under12 || 0) + (c.guests_child_over12 || 0) + (c.guests_other || 0), 0)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {!expired && !fullyFunded ? (
-        <ContributionForm eventId={eventData.id} onContributionSaved={refetchContributions} />
+        <ContributionForm eventId={eventData.id} guestTracking={eventData.guest_tracking} onContributionSaved={refetchContributions} />
       ) : null}
 
       <ContributionList

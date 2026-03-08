@@ -29,16 +29,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${event.name} — SalamiPay`,
-    description: `Contribute to ${event.name}. Target: ${formatAmount(event.target_amount)} with ${event.participants} participants.`,
+    description: event.target_amount
+      ? `Contribute to ${event.name}. Target: ${formatAmount(event.target_amount)} with ${event.participants} participants.`
+      : `Contribute to ${event.name}. ${event.participants} participants.`,
     openGraph: {
       title: `${event.name} — SalamiPay`,
-      description: `Contribute to ${event.name}. Target: ${formatAmount(event.target_amount)} with ${event.participants} participants.`,
+      description: event.target_amount
+        ? `Contribute to ${event.name}. Target: ${formatAmount(event.target_amount)} with ${event.participants} participants.`
+        : `Contribute to ${event.name}. ${event.participants} participants.`,
       type: "website",
       url: `https://salamipay.com/${slug}`,
       siteName: "SalamiPay",
       images: [
         {
-          url: `/api/og?title=${encodeURIComponent(event.name)}&target=${event.target_amount}&collected=0&contributors=0`,
+          url: `/api/og?title=${encodeURIComponent(event.name)}&target=${event.target_amount ?? 0}&collected=0&contributors=0`,
           width: 1200,
           height: 630,
           alt: event.name,

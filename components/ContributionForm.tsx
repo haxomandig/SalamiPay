@@ -5,12 +5,23 @@ import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile"
 import { PAYMENT_METHODS, PAYMENT_METHOD_LABELS } from "../lib/types"
 import type { PaymentMethod } from "../lib/types"
 
-export default function ContributionForm({ eventId, onContributionSaved }: { eventId: string, onContributionSaved?: () => void }) {
+type Props = {
+  eventId: string
+  guestTracking?: boolean
+  onContributionSaved?: () => void
+}
+
+export default function ContributionForm({ eventId, guestTracking, onContributionSaved }: Props) {
 
   const [name, setName] = useState("")
   const [amount, setAmount] = useState("")
   const [message, setMessage] = useState("")
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bkash")
+  const [guestsSelf, setGuestsSelf] = useState(0)
+  const [guestsSpouse, setGuestsSpouse] = useState(0)
+  const [guestsChildUnder12, setGuestsChildUnder12] = useState(0)
+  const [guestsChildOver12, setGuestsChildOver12] = useState(0)
+  const [guestsOther, setGuestsOther] = useState(0)
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle")
   const [cooldown, setCooldown] = useState(false)
@@ -56,6 +67,13 @@ export default function ContributionForm({ eventId, onContributionSaved }: { eve
           message,
           payment_method: paymentMethod,
           turnstile_token: turnstileToken,
+          ...(guestTracking ? {
+            guests_self: guestsSelf,
+            guests_spouse: guestsSpouse,
+            guests_child_under12: guestsChildUnder12,
+            guests_child_over12: guestsChildOver12,
+            guests_other: guestsOther,
+          } : {}),
         }),
       })
 
@@ -67,6 +85,11 @@ export default function ContributionForm({ eventId, onContributionSaved }: { eve
         setAmount("")
         setMessage("")
         setPaymentMethod("bkash")
+        setGuestsSelf(0)
+        setGuestsSpouse(0)
+        setGuestsChildUnder12(0)
+        setGuestsChildOver12(0)
+        setGuestsOther(0)
         setCooldown(true)
         setTimeout(() => setCooldown(false), 30_000)
         onContributionSaved?.()
@@ -79,6 +102,9 @@ export default function ContributionForm({ eventId, onContributionSaved }: { eve
     setTurnstileToken("")
     turnstileRef.current?.reset()
   }
+
+  const inputClass = "w-full p-2.5 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-800"
+  const guestInputClass = "w-full p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-800 text-sm"
 
   return (
     <form onSubmit={handleSubmit} className="mt-8 max-w-md space-y-4">
@@ -97,7 +123,7 @@ export default function ContributionForm({ eventId, onContributionSaved }: { eve
         required
         maxLength={100}
         disabled={loading || cooldown}
-        className="w-full p-2.5 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-800"
+        className={inputClass}
       />
 
       <input
@@ -109,12 +135,12 @@ export default function ContributionForm({ eventId, onContributionSaved }: { eve
         min="1"
         max="10000000"
         disabled={loading || cooldown}
-        className="w-full p-2.5 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-800"
+        className={inputClass}
       />
 
       <div>
-        <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Preferred Payment Method</label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</label>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {PAYMENT_METHODS.map((method) => (
             <button
               key={method}
@@ -133,13 +159,76 @@ export default function ContributionForm({ eventId, onContributionSaved }: { eve
         </div>
       </div>
 
+      {guestTracking && (
+        <div className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg space-y-3">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Guest Count</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Self</label>
+              <input
+                type="number"
+                value={guestsSelf}
+                onChange={(e) => setGuestsSelf(Math.max(0, Math.min(10000, Number(e.target.value) || 0)))}
+                min="0" max="10000"
+                disabled={loading || cooldown}
+                className={guestInputClass}
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Spouse</label>
+              <input
+                type="number"
+                value={guestsSpouse}
+                onChange={(e) => setGuestsSpouse(Math.max(0, Math.min(10000, Number(e.target.value) || 0)))}
+                min="0" max="10000"
+                disabled={loading || cooldown}
+                className={guestInputClass}
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Children (under 12)</label>
+              <input
+                type="number"
+                value={guestsChildUnder12}
+                onChange={(e) => setGuestsChildUnder12(Math.max(0, Math.min(10000, Number(e.target.value) || 0)))}
+                min="0" max="10000"
+                disabled={loading || cooldown}
+                className={guestInputClass}
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Children (over 12)</label>
+              <input
+                type="number"
+                value={guestsChildOver12}
+                onChange={(e) => setGuestsChildOver12(Math.max(0, Math.min(10000, Number(e.target.value) || 0)))}
+                min="0" max="10000"
+                disabled={loading || cooldown}
+                className={guestInputClass}
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Other (driver, relatives)</label>
+              <input
+                type="number"
+                value={guestsOther}
+                onChange={(e) => setGuestsOther(Math.max(0, Math.min(10000, Number(e.target.value) || 0)))}
+                min="0" max="10000"
+                disabled={loading || cooldown}
+                className={guestInputClass}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <textarea
         placeholder="Message (optional)"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         maxLength={500}
         disabled={loading || cooldown}
-        className="w-full p-2.5 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 dark:text-gray-100 disabled:bg-gray-100 dark:disabled:bg-gray-800"
+        className={inputClass}
       />
 
       <Turnstile

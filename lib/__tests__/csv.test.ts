@@ -10,6 +10,11 @@ function makeContribution(overrides: Partial<Contribution> = {}): Contribution {
     message: "Good luck!",
     payment_method: "bkash",
     payment_status: "pending",
+    guests_self: 0,
+    guests_spouse: 0,
+    guests_child_under12: 0,
+    guests_child_over12: 0,
+    guests_other: 0,
     created_at: "2026-01-15T10:30:00Z",
     ...overrides,
   }
@@ -18,7 +23,7 @@ function makeContribution(overrides: Partial<Contribution> = {}): Contribution {
 describe("buildCSV", () => {
   it("generates header row", () => {
     const csv = buildCSV([])
-    expect(csv).toBe("Name,Amount,Payment Method,Payment Status,Message,Date")
+    expect(csv).toBe("Name,Amount,Payment Method,Payment Status,Self,Spouse,Children (<12),Children (>12),Other Guests,Message,Date")
   })
 
   it("generates a row for each contribution", () => {

@@ -6,9 +6,10 @@ import { formatAmount } from "../lib/format"
 
 type Props = {
   contributions: Contribution[]
+  guestTracking?: boolean
 }
 
-export default function EventDashboard({ contributions }: Props) {
+export default function EventDashboard({ contributions, guestTracking }: Props) {
   const totalCollected = contributions
     .filter((c) => c.payment_status === "completed")
     .reduce((sum, c) => sum + c.amount, 0)
@@ -62,6 +63,26 @@ export default function EventDashboard({ contributions }: Props) {
                 <p className="text-xs text-gray-500 font-medium">{method}</p>
                 <p className="text-sm font-bold">{formatAmount(amount)}</p>
                 <p className="text-xs text-gray-400">{count} contribution{count !== 1 ? "s" : ""}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {guestTracking && (
+        <div className="mt-4">
+          <h3 className="text-sm font-medium mb-2">Guest Breakdown</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {[
+              { label: "Self", value: contributions.reduce((s, c) => s + (c.guests_self || 0), 0) },
+              { label: "Spouse", value: contributions.reduce((s, c) => s + (c.guests_spouse || 0), 0) },
+              { label: "Child (<12)", value: contributions.reduce((s, c) => s + (c.guests_child_under12 || 0), 0) },
+              { label: "Child (>12)", value: contributions.reduce((s, c) => s + (c.guests_child_over12 || 0), 0) },
+              { label: "Other", value: contributions.reduce((s, c) => s + (c.guests_other || 0), 0) },
+              { label: "Total", value: contributions.reduce((s, c) => s + (c.guests_self || 0) + (c.guests_spouse || 0) + (c.guests_child_under12 || 0) + (c.guests_child_over12 || 0) + (c.guests_other || 0), 0) },
+            ].map(({ label, value }) => (
+              <div key={label} className="p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <p className="text-xs text-gray-500 font-medium">{label}</p>
+                <p className="text-sm font-bold">{value}</p>
               </div>
             ))}
           </div>

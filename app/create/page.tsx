@@ -12,6 +12,8 @@ export default function CreateEvent() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [dirty, setDirty] = useState(false)
+  const [guestTracking, setGuestTracking] = useState(false)
+  const [hasTarget, setHasTarget] = useState(true)
 
   const handleBeforeUnload = useCallback((e: BeforeUnloadEvent) => {
     e.preventDefault()
@@ -42,7 +44,7 @@ export default function CreateEvent() {
     const form = e.target as HTMLFormElement
 
     const name = (form.elements.namedItem("eventName") as HTMLInputElement).value.trim()
-    const targetAmountStr = (form.elements.namedItem("targetAmount") as HTMLInputElement).value
+    const targetAmountStr = (form.elements.namedItem("targetAmount") as HTMLInputElement)?.value
     const participantsStr = (form.elements.namedItem("participants") as HTMLInputElement).value
     const deadlineStr = (form.elements.namedItem("deadline") as HTMLInputElement).value
 
@@ -51,14 +53,16 @@ export default function CreateEvent() {
       return
     }
 
-    const target_amount = Number(targetAmountStr)
-    const participants = Number(participantsStr)
-
-    if (!target_amount || target_amount <= 0 || target_amount > 10_000_000) {
-      setError("Target amount must be between 1 and 10,000,000.")
-      return
+    let target_amount: number | null = null
+    if (hasTarget) {
+      target_amount = Number(targetAmountStr)
+      if (!target_amount || target_amount <= 0 || target_amount > 10_000_000) {
+        setError("Target amount must be between 1 and 10,000,000.")
+        return
+      }
     }
 
+    const participants = Number(participantsStr)
     if (!participants || participants <= 0 || !Number.isInteger(participants) || participants > 10_000) {
       setError("Number of participants must be a whole number between 1 and 10,000.")
       return
@@ -69,7 +73,7 @@ export default function CreateEvent() {
     setLoading(true)
     const { data, error: dbError } = await supabase
       .from("events")
-      .insert([{ name, slug, target_amount, participants, created_by: user?.id ?? null, deadline: deadlineStr || null }])
+      .insert([{ name, slug, target_amount, participants, created_by: user?.id ?? null, deadline: deadlineStr || null, guest_tracking: guestTracking }])
       .select()
     setLoading(false)
 
@@ -81,6 +85,9 @@ export default function CreateEvent() {
       router.push(`/event/${data[0].slug}`)
     }
   }
+
+  const inputClass = "w-full p-2.5 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 dark:text-gray-100"
+
   return (
     <main className="p-4 sm:p-10">
       <h1 className="text-2xl font-bold">Create Event</h1>
@@ -98,22 +105,35 @@ export default function CreateEvent() {
             required
             maxLength={200}
             onChange={() => setDirty(true)}
-            className="w-full p-2.5 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 dark:text-gray-100"
+            className={inputClass}
           />
         </div>
 
         <div className="mb-5">
-          <label className="block mb-1 font-medium">Total Amount Needed</label>
-          <input
-            name="targetAmount"
-            type="number"
-            placeholder="5000"
-            required
-            min="1"
-            max="10000000"
-            onChange={() => setDirty(true)}
-            className="w-full p-2.5 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 dark:text-gray-100"
-          />
+          <label className="flex items-center gap-2 cursor-pointer mb-2">
+            <input
+              type="checkbox"
+              checked={hasTarget}
+              onChange={(e) => { setHasTarget(e.target.checked); setDirty(true) }}
+              className="w-4 h-4 rounded border-gray-300 dark:border-gray-700"
+            />
+            <span className="font-medium">Set a target amount</span>
+          </label>
+          {hasTarget && (
+            <input
+              name="targetAmount"
+              type="number"
+              placeholder="5000"
+              required
+              min="1"
+              max="10000000"
+              onChange={() => setDirty(true)}
+              className={inputClass}
+            />
+          )}
+          {!hasTarget && (
+            <p className="text-xs text-gray-500 dark:text-gray-400">No target — contributors won&apos;t see a progress tracker.</p>
+          )}
         </div>
 
         <div className="mb-5">
@@ -127,8 +147,21 @@ export default function CreateEvent() {
             max="10000"
             step="1"
             onChange={() => setDirty(true)}
-            className="w-full p-2.5 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 dark:text-gray-100"
+            className={inputClass}
           />
+        </div>
+
+        <div className="mb-5">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={guestTracking}
+              onChange={(e) => { setGuestTracking(e.target.checked); setDirty(true) }}
+              className="w-4 h-4 rounded border-gray-300 dark:border-gray-700"
+            />
+            <span className="font-medium">Enable guest tracking</span>
+          </label>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Contributors can specify how many guests (self, spouse, children, others) they are bringing.</p>
         </div>
 
         <div className="mb-5">
@@ -137,7 +170,7 @@ export default function CreateEvent() {
             name="deadline"
             type="datetime-local"
             onChange={() => setDirty(true)}
-            className="w-full p-2.5 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 dark:text-gray-100"
+            className={inputClass}
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Contributions will be disabled after this date.</p>
         </div>
