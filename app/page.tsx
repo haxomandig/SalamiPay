@@ -285,14 +285,14 @@ export default function Homepage() {
           <p className="text-emerald-600 dark:text-emerald-400 font-semibold text-sm uppercase tracking-wider mb-3">
             Pricing
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Free. Forever.</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Join SalamiPay — It&apos;s Free</h2>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-xl mx-auto mb-12">
-            SalamiPay is completely free for organizers and contributors. No hidden fees, no commissions, no premium tiers.
+            Get started instantly. No credit card required, no setup fees. Just create your event and start collecting.
           </p>
 
           <div className="max-w-sm mx-auto p-8 rounded-2xl bg-white dark:bg-gray-800 border-2 border-emerald-500 shadow-xl shadow-emerald-500/10">
-            <div className="text-5xl font-bold text-emerald-600 dark:text-emerald-400">$0</div>
-            <div className="text-gray-500 mt-1 mb-6">per event, forever</div>
+            <div className="text-5xl font-bold text-emerald-600 dark:text-emerald-400">Free</div>
+            <div className="text-gray-500 mt-1 mb-6">to get started</div>
             <ul className="text-left space-y-3 text-sm">
               {[
                 "Unlimited events",
@@ -315,7 +315,7 @@ export default function Homepage() {
               href="/create"
               className="mt-8 block w-full py-3 rounded-xl bg-emerald-500 text-white font-semibold text-center hover:bg-emerald-400 transition-colors no-underline"
             >
-              Get Started Free
+              Get Started
             </Link>
           </div>
         </div>
@@ -338,7 +338,7 @@ export default function Homepage() {
             />
             <FAQItem
               q="Is SalamiPay free?"
-              a="Yes, completely free. There are no charges for creating events, tracking contributions, or using any features. We believe group organizing should be accessible to everyone."
+              a="Yes, SalamiPay is free to use. There are no charges for creating events, tracking contributions, or using any features. We believe group organizing should be accessible to everyone."
             />
             <FAQItem
               q="How do contributors make their pledge?"
