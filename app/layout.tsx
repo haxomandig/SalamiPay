@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "../components/AuthProvider";
 import AuthButton from "../components/AuthButton";
+import NavLinks from "../components/NavLinks";
 import ThemeToggle from "../components/ThemeToggle";
 import { ToastProvider } from "../components/Toast";
 
@@ -60,12 +61,7 @@ export default function RootLayout({
           <Link href="/" className="font-bold text-lg no-underline text-inherit">
             SalamiPay
           </Link>
-          <Link href="/dashboard" className="no-underline text-gray-500 dark:text-gray-400 text-sm">
-            Dashboard
-          </Link>
-          <Link href="/create" className="no-underline text-gray-500 dark:text-gray-400 text-sm">
-            Create Event
-          </Link>
+          <NavLinks />
           <div className="ml-auto flex items-center gap-3">
             <ThemeToggle />
             <AuthButton />
