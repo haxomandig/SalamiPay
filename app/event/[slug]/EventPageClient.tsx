@@ -173,7 +173,10 @@ export default function EventPageClient({ event: initialEvent }: { event: EventD
       <p className="mt-2">Target Amount: {formatAmount(eventData.target_amount)}</p>
       <p>Participants: {eventData.participants}</p>
       <p className="text-sm text-gray-500 dark:text-gray-400">
-        Expected per person: {formatAmount(Math.ceil(eventData.target_amount / eventData.participants))} — Created {new Date(eventData.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
+        Expected per person: {formatAmount(Math.ceil(eventData.target_amount / eventData.participants))}
+        {eventData.created_at && new Date(eventData.created_at).getFullYear() > 1970 && (
+          <> — Created {new Date(eventData.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</>
+        )}
         {eventData.deadline && (
           <> — Deadline: {new Date(eventData.deadline).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</>
         )}
