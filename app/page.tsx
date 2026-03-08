@@ -1,45 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState, useEffect, useRef } from "react"
-
-/* ───────── Animated Counter ───────── */
-function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
-  const [count, setCount] = useState(0)
-  const ref = useRef<HTMLSpanElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          let start = 0
-          const duration = 2000
-          const step = target / (duration / 16)
-          const timer = setInterval(() => {
-            start += step
-            if (start >= target) {
-              setCount(target)
-              clearInterval(timer)
-            } else {
-              setCount(Math.floor(start))
-            }
-          }, 16)
-          observer.disconnect()
-        }
-      },
-      { threshold: 0.3 }
-    )
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [target])
-
-  return (
-    <span ref={ref}>
-      {count.toLocaleString()}
-      {suffix}
-    </span>
-  )
-}
+import { useState } from "react"
 
 /* ───────── FAQ Item ───────── */
 function FAQItem({ q, a }: { q: string; a: string }) {
@@ -144,24 +106,16 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* ══════════ SOCIAL PROOF / STATS ══════════ */}
+      {/* ══════════ EARLY ADOPTER BANNER ══════════ */}
       <section className="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {[
-              { value: 500, suffix: "+", label: "Events Created" },
-              { value: 12000, suffix: "+", label: "Contributions Tracked" },
-              { value: 98, suffix: "%", label: "Target Completion Rate" },
-              { value: 50, suffix: "M+", label: "BDT Pledged" },
-            ].map((stat, i) => (
-              <div key={i}>
-                <div className="text-3xl sm:text-4xl font-bold text-emerald-600 dark:text-emerald-400">
-                  <AnimatedCounter target={stat.value} suffix={stat.suffix} />
-                </div>
-                <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">{stat.label}</div>
-              </div>
-            ))}
-          </div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 text-center">
+          <p className="text-emerald-600 dark:text-emerald-400 font-semibold text-sm uppercase tracking-wider mb-2">
+            Just Launched
+          </p>
+          <h3 className="text-xl sm:text-2xl font-bold mb-3">Be among the first to use SalamiPay</h3>
+          <p className="text-gray-600 dark:text-gray-400 max-w-lg mx-auto">
+            Join the early wave of organizers simplifying group contributions across Bangladesh.
+          </p>
         </div>
       </section>
 
